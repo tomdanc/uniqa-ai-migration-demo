@@ -1,0 +1,227 @@
+<title>Migrační weekboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: dark control-room board — summary strip, phase legend, then one lane per week with flow cards. Single committed dark look (Revolt BI signature). */
+:root {
+  --bg: #000000;
+  --surface: #0d0f10;
+  --surface-2: #15191b;
+  --line: #262c2f;
+  --fg: #f2f5f4;
+  --muted: #8f9aa3;
+  --yellow: #EBA52D;
+  --teal: #50D2D2;
+  --ok: #50D2D2;
+  --warn: #EBA52D;
+  --bad: #ff6b5e;
+  --idle: #3a4246;
+  --display: "Montserrat", "Arial", sans-serif;
+  --body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 36px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--teal); }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(32px, 5vw, 52px); line-height: 1.05; margin: 8px 0 12px; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--yellow); }
+.lede { color: var(--muted); max-width: 68ch; margin: 0; }
+.anon { margin-top: 14px; display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--line); padding: 6px 10px; border-radius: 4px; }
+.anon b { color: var(--fg); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.stat { background: var(--bg); padding: 18px 20px; }
+.stat .v { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat .v.y { color: var(--yellow); }
+.stat .l { margin-top: 8px; font-size: 13px; color: var(--muted); }
+
+.chain { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.phase { border-top: 3px solid var(--yellow); padding-top: 12px; min-width: 0; }
+.phase .n { font-family: var(--mono); font-size: 12px; color: var(--yellow); }
+.phase h3 { font-family: var(--display); font-size: 17px; margin: 2px 0 4px; }
+.phase p { margin: 0; font-size: 13px; color: var(--muted); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filters span { font-size: 13px; color: var(--muted); margin-right: 4px; }
+.chip { font: 500 13px var(--body); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--yellow); border-color: var(--yellow); color: #000; }
+.chip:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+.weeks { display: grid; gap: 28px; }
+.week { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 20px; border-top: 1px solid var(--line); padding-top: 20px; }
+.week-h .wk { font-family: var(--display); font-weight: 800; font-size: 28px; }
+.week-h .wk small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 4px; }
+.week-h .meta { font-size: 13px; color: var(--muted); margin-top: 6px; display: grid; gap: 2px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 12px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card[hidden] { display: none; }
+.card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.fid { font-family: var(--mono); font-weight: 600; font-size: 14px; }
+.dom { font-size: 13px; color: var(--muted); }
+.pill { font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+.pill.merged { background: var(--teal); color: #000; }
+.pill.pushed { background: color-mix(in srgb, var(--teal) 22%, transparent); color: var(--teal); }
+.pill.validated, .pill.validating { background: color-mix(in srgb, var(--yellow) 18%, transparent); color: var(--yellow); }
+.pill.authoring { background: var(--surface-2); color: var(--fg); }
+.pill.blocked { background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad); }
+.pill.skipped { background: var(--surface-2); color: var(--muted); }
+.pill.queued { background: transparent; color: var(--muted); border: 1px dashed var(--idle); }
+.bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.bar i { height: 5px; border-radius: 1px; background: var(--idle); }
+.bar i.on { background: var(--yellow); }
+.bar i.stop { background: var(--bad); }
+.size { display: flex; gap: 14px; font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.size b { color: var(--fg); font-weight: 600; }
+.tests { display: flex; gap: 10px; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tests .p { color: var(--ok); } .tests .w { color: var(--warn); } .tests .e { color: var(--bad); } .tests .z { color: var(--muted); }
+.note { font-size: 13px; color: var(--fg); opacity: .85; margin: 0; }
+
+footer { border-top: 1px solid var(--line); padding-top: 18px; font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 80ch; }
+
+@media (max-width: 760px) {
+  .chain { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .week { grid-template-columns: 1fr; gap: 12px; }
+  .week-h { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .week-h .meta { margin: 0; display: flex; gap: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: border-color .15s; }
+  .card:hover { border-color: var(--muted); }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Keboola → dbt + DuckDB · AI skill chain</div>
+    <h1>5 týdnů migrace, <em>flow po flow</em></h1>
+    <p class="lede">Každé flow prošlo čtyřmi kroky řízenými AI skilly: připravenost dat, převod do dbt, validace proti legacy výstupu a push do GitLabu s MR k review. Žádný krok nezačne, dokud předchozí neprojde svou bránou.</p>
+    <div class="anon"><b>Anonymizováno.</b> Názvy flow, projektů, tabulek i klienta jsou nahrazeny. Velikosti, počty testů a výsledky jsou skutečné.</div>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Souhrn"></section>
+
+  <section aria-label="Řetězec skillů">
+    <div class="chain">
+      <div class="phase"><div class="n">P2 · readiness</div><h3>Připravenost</h3><p>Jsou vstupy na podu, aktuální a úplné? Pre-flight brána umí flow i vyřadit.</p></div>
+      <div class="phase"><div class="n">P3 · migration</div><h3>Převod</h3><p>SQL a Python z Keboola převedeny do dbt modelů s testy a S3 publikací.</p></div>
+      <div class="phase"><div class="n">P4 · validation</div><h3>Validace</h3><p>dbt build na podu a rekonciliace proti legacy výstupu. Každý WARN musí mít důkaz.</p></div>
+      <div class="phase"><div class="n">P5 · pushing</div><h3>Push &amp; MR</h3><p>Cílený commit, MR do qa, komentář v Productive, úkol do review.</p></div>
+    </div>
+  </section>
+
+  <div class="filters" role="group" aria-label="Filtr podle stavu">
+    <span>Zobrazit:</span>
+    <button class="chip" id="f-all" data-f="all" aria-pressed="true">Vše</button>
+    <button class="chip" id="f-done" data-f="done" aria-pressed="false">Push / merge</button>
+    <button class="chip" id="f-flight" data-f="flight" aria-pressed="false">Rozpracováno</button>
+    <button class="chip" id="f-stop" data-f="stop" aria-pressed="false">Blokováno / vyřazeno</button>
+  </div>
+
+  <section class="weeks" id="weeks"></section>
+
+  <footer>
+    <div>Fáze na kartě: čtyři segmenty = P2 → P5. Žlutá = fáze prošla, červená = flow zastaveno v této fázi.</div>
+    <div>Testy: PASS / WARN / ERROR z posledního validačního běhu (dbt testy + rekonciliace). „—“ = číslo nebylo v trackeru zaznamenáno.</div>
+    <div>Velikost: T = transformace, I = vstupní tabulky, O = výstupní tabulky v původním Keboola flow.</div>
+  </footer>
+</div>
+
+<script>
+const LABEL = { merged: "Merged", pushed: "MR → qa", validated: "Validováno", validating: "Ve validaci", authoring: "Převod", blocked: "Blokováno", skipped: "Vyřazeno", queued: "Ve frontě" };
+// phases passed (0–4) and whether the flow stopped at the next phase
+const PHASE = { merged: [4], pushed: [4], validated: [3], validating: [2], authoring: [1], blocked: [2, true], skipped: [0, true], queued: [0] };
+const GROUP = { merged: "done", pushed: "done", validated: "flight", validating: "flight", authoring: "flight", queued: "flight", blocked: "stop", skipped: "stop" };
+
+const WEEKS = [
+  { w: 1, flows: [
+    ["F-101","Pricing",1,2,1,1,[27,1,0],"pushed","Klouzavé 90denní okno; mazání starých záznamů přeneseno jako post-hook."],
+    ["F-102","Zákazníci",2,4,2,2,[13,6,0],"pushed","Oprava časových zón; všech 6 WARN individuálně zdůvodněno."],
+    ["F-103","Zákazníci",8,8,9,null,null,"merged","Sloučeno do qa první týden."],
+    ["F-104","Logistika",7,31,12,1,[5,9,0],"pushed","Python transformace přepsána do SQL; 9 WARN prokázáno jako artefakty."],
+    ["F-105","Finance",1,1,1,1,[17,0,0],"pushed","Plná řádková shoda s legacy: 0 chybějících, 0 navíc."],
+    ["F-106","Logistika",1,3,1,1,[12,0,0],"pushed","View model, 10 testů, symetrická rekonciliace bez rozdílu."],
+    ["F-107","Reporting",1,1,1,1,[13,4,0],"merged","View převeden na inkrementální model, 3 opravy legacy logiky."],
+    ["F-108","Referenční data",2,1,1,null,null,"skipped","Pre-flight brána: výstup duplicitní s přímým loadem, nemigrovat."],
+  ]},
+  { w: 2, flows: [
+    ["F-201","Číselníky",2,3,2,2,[34,0,0],"pushed","Chybějící ERP vstupy doplněny; předvalidace bajt po bajtu shodná."],
+    ["F-202","Nákup",7,13,7,1,[6,8,0],"merged","7 transformací sloučeno do jednoho modelu."],
+    ["F-203","Finance",6,16,6,6,[86,17,0],"pushed","0 nevysvětlených WARN; druhý inkrementální běh bez nárůstu."],
+    ["F-204","Zákazníci",2,4,4,5,null,"pushed","5 modelů + makro."],
+    ["F-205","Logistika",11,10,11,15,[22,15,2],"blocked","Skip verdikt zrušen po živé kontrole; čeká na přestaging zdrojových dat."],
+    ["F-206","Prodej",8,7,10,1,null,"blocked","Migrován 1 z 10 výstupů; chybí referenční výstup pro rekonciliaci."],
+    ["F-207","Logistika",1,3,1,1,null,"pushed","Jeden view model, data na podu ověřena."],
+    ["F-208","Kontaktní centrum",1,3,1,1,null,"pushed","Commit jen s přidanými soubory, bez zásahu do jiných flow."],
+  ]},
+  { w: 3, flows: [
+    ["F-301","Zákazníci",3,7,7,1,null,"pushed","Datamart model + makro; 412 řádků, 0 smazaných."],
+    ["F-302","Logistika",11,26,13,12,null,"validating","12 modelů ve 4 vlnách; vlna 1 připravena k validaci."],
+    ["F-303","Logistika",2,12,2,2,[22,10,0],"pushed","Navazuje na MR předchozího flow; 28 testů."],
+    ["F-304","Finance",1,3,1,1,[19,9,0],"pushed","Všech 9 WARN doloženo daty z podu."],
+    ["F-305","Sklad",3,3,1,null,null,"authoring","Data na podu; převod rozpracován."],
+    ["F-306","Logistika",null,null,null,null,[19,30,0],"validated","30 WARN rozřazeno podle příčiny, žádný nevysvětlený."],
+    ["F-307","HR",2,3,2,null,null,"queued","Naplánováno."],
+  ]},
+  { w: 4, flows: [
+    ["F-401","Dodavatelé",19,28,5,21,null,"authoring","21 z 23 modelů napsáno, dbt parse čistý."],
+    ["F-402","KPI",10,19,10,null,null,"queued","Naplánováno."],
+    ["F-403","Expedice",17,23,7,12,[6,0,0],"pushed","12 modelů, 142 testů; mezivrstvy bez varování."],
+    ["F-404","Logistika",5,17,5,16,[48,67,0],"pushed","115 rekonciliačních testů, build bez chyby."],
+    ["F-405","Logistika",null,null,null,null,[35,8,0],"validated","Validace hotová, čeká na push."],
+  ]},
+  { w: 5, flows: [
+    ["F-501","Produkt",5,27,3,null,[30,0,0],"merged","Dva běhy (full + inkrementální) ověřeny."],
+    ["F-502","Doručování",23,57,33,6,null,"pushed","23 transformací zredukováno na 6 modelů."],
+    ["F-503","Expedice",4,9,2,6,[11,8,0],"pushed","Výstup 22,6 mil. řádků."],
+    ["F-504","Logistika",1,5,1,1,null,"pushed","Rekonciliace přes celou historii, bez datového filtru."],
+    ["F-505","Obchod",1,2,2,1,null,"pushed","4 soubory, 122 přidaných řádků."],
+    ["F-506","Produkt",3,4,6,4,[38,8,0],"pushed","Všech 8 WARN zdůvodněno."],
+    ["F-507","Finance",1,4,1,null,null,"queued","Naplánováno."],
+    ["F-508","Produkt",1,8,1,null,null,"queued","Naplánováno."],
+  ]},
+];
+
+const all = WEEKS.flatMap(w => w.flows);
+const fmt = n => n.toLocaleString("cs-CZ");
+const count = s => all.filter(f => s.includes(f[7])).length;
+const tests = all.reduce((a, f) => f[6] ? [a[0] + f[6][0], a[1] + f[6][1], a[2] + f[6][2]] : a, [0, 0, 0]);
+const models = all.reduce((a, f) => a + (f[5] || 0), 0);
+document.getElementById("stats").innerHTML = [
+  [all.length, "flow za 5 týdnů", false],
+  [count(["pushed", "merged"]), "s MR do qa (z toho " + count(["merged"]) + " merged)", true],
+  [models, "dbt modelů napsáno", false],
+  [fmt(tests[0]), "testů PASS · " + tests[1] + " WARN se zdůvodněním", false],
+  [count(["blocked", "skipped"]), "zastaveno bránou (blok / vyřazení)", false],
+].map(([v, l, y]) => `<div class="stat"><div class="v${y ? " y" : ""}">${v}</div><div class="l">${l}</div></div>`).join("");
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const card = ([id, dom, t, i, o, m, ts, st, note]) => {
+  const [passed, stopped] = PHASE[st];
+  const segs = [0, 1, 2, 3].map(k => `<i class="${k < passed ? "on" : (stopped && k === passed ? "stop" : "")}"></i>`).join("");
+  const size = t == null ? "" : `<div class="size"><span>T <b>${t}</b></span><span>I <b>${i}</b></span><span>O <b>${o}</b></span>${m ? `<span>modely <b>${m}</b></span>` : ""}</div>`;
+  const tst = ts ? `<div class="tests"><span class="p">PASS ${ts[0]}</span><span class="w">WARN ${ts[1]}</span><span class="${ts[2] ? "e" : "z"}">ERR ${ts[2]}</span></div>` : `<div class="tests"><span class="z">testy —</span></div>`;
+  return `<article class="card" data-g="${GROUP[st]}">
+    <div class="card-top"><div><div class="fid">${id}</div><div class="dom">${esc(dom)}</div></div><span class="pill ${st}">${LABEL[st]}</span></div>
+    <div class="bar" aria-label="Prošlé fáze: ${passed} ze 4">${segs}</div>
+    ${size}${tst}<p class="note">${esc(note)}</p></article>`;
+};
+document.getElementById("weeks").innerHTML = WEEKS.map(({ w, flows }) => {
+  const done = flows.filter(f => GROUP[f[7]] === "done").length;
+  return `<div class="week"><div class="week-h"><div class="wk">Týden ${w}<small>/ 5</small></div>
+    <div class="meta"><span>${flows.length} flow</span><span>${done} s MR</span></div></div>
+    <div class="cards">${flows.map(card).join("")}</div></div>`;
+}).join("");
+
+const chips = [...document.querySelectorAll(".chip")];
+const apply = f => {
+  chips.forEach(c => c.setAttribute("aria-pressed", c.dataset.f === f));
+  document.querySelectorAll(".card").forEach(c => { c.hidden = f !== "all" && c.dataset.g !== f; });
+  try { localStorage.setItem("wb-filter", f); } catch (e) {}
+};
+chips.forEach(c => c.addEventListener("click", () => apply(c.dataset.f)));
+try { const s = localStorage.getItem("wb-filter"); if (s) apply(s); } catch (e) {}
+</script>
