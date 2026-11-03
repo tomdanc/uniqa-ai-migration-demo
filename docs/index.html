@@ -85,6 +85,9 @@ h1,h2,h3{text-wrap:balance;margin:0;font-family:var(--display)}
 .card:hover{transform:translateY(-3px);border-color:var(--line-strong);background:linear-gradient(160deg,var(--card-on),var(--card))}
 .card h3{font-weight:700;font-size:23px;line-height:1.15}
 .card .id{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:-6px;word-break:break-all}
+.card .formula{font-family:var(--display);font-weight:600;font-size:14px;color:var(--faint);margin-top:-8px}
+.modal .head .formula{font-family:var(--display);font-weight:600;font-size:16px;color:var(--faint);flex-basis:100%;margin-left:56px;margin-top:-10px}
+@media (max-width:720px){.modal .head .formula{margin-left:0}}
 .card .q{color:var(--muted);font-size:15px;line-height:1.5;margin:0;flex:1}
 .card .gate{margin-top:auto;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--lime)}
 .card .gate::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--lime)}
@@ -173,7 +176,8 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       <div class="row" role="list">
         <button class="card" id="btn-readiness" data-key="readiness" role="listitem" aria-haspopup="dialog">
           <span class="badge lime">01</span>
-          <h3>Status + Scope = Readiness</h3>
+          <h3>Readiness</h3>
+          <span class="formula">Status + Scope = Readiness</span>
           <span class="id">keboola-readiness-skill</span>
           <p class="q">Jsou všechny vstupy na podu, aktuální a úplné? Existuje legacy reference a validační okno?</p>
           <span class="gate">brána: žádný vstup neblokuje</span>
@@ -267,7 +271,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 </template>
 
 <template id="t-readiness">
-  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Status + Scope = Readiness</h2><span class="id">keboola-readiness-skill · P2</span></div>
+  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Readiness</h2><span class="formula">Status + Scope = Readiness</span><span class="id">keboola-readiness-skill · P2</span></div>
   <p class="question">Otázka: <b>Je všechno, co flow potřebuje, dnes skutečně použitelné? A když ne, kdo to odblokuje?</b> Jedna tabulka, verdikt na každém řádku, nikdy jedna sloučená odpověď.</p>
   <div class="grid">
     <div class="sec">
@@ -440,7 +444,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 <script>
 (function(){
   var keys=['orch','readiness','migration','validation','pushing'];
-  var names={orch:'Orchestrator (Optional)',readiness:'Status + Scope = Readiness',migration:'Migration',validation:'Validation',pushing:'Pushing'};
+  var names={orch:'Orchestrator (Optional)',readiness:'Readiness',migration:'Migration',validation:'Validation',pushing:'Pushing'};
   var overlay=document.getElementById('overlay'),modal=document.getElementById('modal'),body=document.getElementById('m-body');
   var prev=document.getElementById('prev'),next=document.getElementById('next');
   var current=null,lastFocus=null;
