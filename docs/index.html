@@ -1,0 +1,517 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Čtyři skilly, čtyři brány</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: orchestrator pill on top, connector lines (SVG, measured by JS) down onto four phase cards in a row with green arrows between them and a dashed iterate loop under migration→validation. Click opens a modal. Dark-first slate + lime, like the deck slide. */
+:root{
+  --bg0:#1b2631;
+  --bg1:#111a22;
+  --card:#27323d;
+  --card-2:#2f3b47;
+  --card-on:#2b4237;
+  --fg:#ffffff;
+  --muted:rgba(255,255,255,.72);
+  --faint:rgba(255,255,255,.45);
+  --line:rgba(255,255,255,.10);
+  --line-strong:rgba(255,255,255,.22);
+  --lime:#a6e85a;
+  --lime-ink:#0f1a10;
+  --lime-dim:rgba(166,232,90,.14);
+  --amber:#f2c14e;
+  --amber-dim:rgba(242,193,78,.14);
+  --red:#ff7b7b;
+  --overlay:rgba(6,10,14,.72);
+  --shadow:0 24px 60px rgba(0,0,0,.45);
+  --display:"Quicksand","Nunito",Arial,sans-serif;
+  --body:"Nunito","Inter",Arial,sans-serif;
+  --mono:"JetBrains Mono",Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg0:#eef2f5; --bg1:#dfe6ec; --card:#ffffff; --card-2:#f3f6f8; --card-on:#eaf7df;
+    --fg:#13202b; --muted:rgba(19,32,43,.74); --faint:rgba(19,32,43,.5);
+    --line:rgba(19,32,43,.12); --line-strong:rgba(19,32,43,.26);
+    --lime:#5aa41a; --lime-ink:#ffffff; --lime-dim:rgba(90,164,26,.12);
+    --amber:#b7820f; --amber-dim:rgba(183,130,15,.12); --red:#c23b3b;
+    --overlay:rgba(19,32,43,.5); --shadow:0 24px 60px rgba(19,32,43,.25);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg0:#eef2f5; --bg1:#dfe6ec; --card:#ffffff; --card-2:#f3f6f8; --card-on:#eaf7df;
+  --fg:#13202b; --muted:rgba(19,32,43,.74); --faint:rgba(19,32,43,.5);
+  --line:rgba(19,32,43,.12); --line-strong:rgba(19,32,43,.26);
+  --lime:#5aa41a; --lime-ink:#ffffff; --lime-dim:rgba(90,164,26,.12);
+  --amber:#b7820f; --amber-dim:rgba(183,130,15,.12); --red:#c23b3b;
+  --overlay:rgba(19,32,43,.5); --shadow:0 24px 60px rgba(19,32,43,.25);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg1);background-image:radial-gradient(1200px 600px at 20% -10%,var(--bg0),transparent 70%),linear-gradient(180deg,var(--bg0),var(--bg1));color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0}
+h1,h2,h3{text-wrap:balance;margin:0;font-family:var(--display)}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:24px;padding-block:44px 64px}
+
+/* masthead */
+.mast{margin-bottom:36px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--lime)}
+.mast h1{font-weight:700;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.01em;line-height:1.15;margin-top:8px}
+.lede{color:var(--muted);max-width:66ch;margin:10px 0 0;font-size:17px}
+
+/* stage holds orchestrator + chain + svg connectors */
+.stage{position:relative}
+.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+
+/* orchestrator */
+.orch-row{display:flex;justify-content:center}
+.orch{position:relative;z-index:1;display:flex;align-items:center;gap:16px;text-align:left;background:linear-gradient(180deg,var(--card-2),var(--card));border:1px solid var(--line-strong);border-radius:999px;padding:12px 26px 12px 14px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.18);transition:transform .15s,border-color .15s,box-shadow .15s}
+.orch:hover{transform:translateY(-2px);border-color:var(--amber)}
+.orch:focus-visible,.card:focus-visible,.x:focus-visible,.nav button:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.badge{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.02em}
+.badge.lime{background:var(--lime);color:var(--lime-ink)}
+.badge.amber{background:var(--amber);color:var(--lime-ink)}
+.orch .t{display:flex;flex-direction:column;line-height:1.25}
+.orch .t b{font-family:var(--display);font-weight:700;font-size:19px}
+.orch .t span{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.orch .t em{font-style:normal;color:var(--muted);font-size:14px;margin-top:2px}
+
+/* chain */
+.chain{margin-top:84px;position:relative;z-index:1}
+.row{display:grid;grid-template-columns:1fr 64px 1fr 64px 1fr 64px 1fr;gap:0;align-items:stretch}
+.card{position:relative;text-align:left;background:linear-gradient(160deg,var(--card-2),var(--card));border:1px solid var(--line);border-radius:14px;padding:22px 22px 24px;cursor:pointer;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:230px;box-shadow:0 14px 36px rgba(0,0,0,.18);transition:transform .15s,border-color .15s,background .15s}
+.card:hover{transform:translateY(-3px);border-color:var(--line-strong);background:linear-gradient(160deg,var(--card-on),var(--card))}
+.card h3{font-weight:700;font-size:23px;line-height:1.15}
+.card .id{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:-6px;word-break:break-all}
+.card .q{color:var(--muted);font-size:15px;line-height:1.5;margin:0;flex:1}
+.card .gate{margin-top:auto;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--lime)}
+.card .gate::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--lime)}
+.arrow{display:flex;align-items:center;justify-content:center;padding-inline:4px}
+.arrow svg{width:100%;height:14px;overflow:visible}
+.loopnote{display:none}
+
+/* mobile */
+@media (max-width:900px){
+  .row{grid-template-columns:1fr}
+  .arrow{height:34px}
+  .arrow svg{width:14px;height:100%;transform:rotate(90deg)}
+  .card{min-height:0}
+  .chain{margin-top:36px}
+  .wires{display:none}
+  .orch{border-radius:18px;width:100%}
+  .loopnote{display:block;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--lime);text-align:center}
+  .wrap{padding-inline:16px}
+}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.overlay.on{display:flex}
+.modal{position:relative;width:min(960px,100%);max-height:calc(100vh - 48px);overflow:auto;background:linear-gradient(170deg,var(--card-2),var(--card));border:1px solid var(--line-strong);border-radius:20px;box-shadow:var(--shadow);padding:30px 34px 28px}
+.modal .head{display:flex;align-items:center;gap:16px;padding-right:48px;flex-wrap:wrap}
+.modal .head h2{font-weight:700;font-size:clamp(24px,3vw,32px);line-height:1.15}
+.modal .head .id{font-family:var(--mono);font-size:13px;color:var(--faint);flex-basis:100%;margin-left:56px;margin-top:-6px}
+.x{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);cursor:pointer;display:grid;place-items:center;font-size:18px;color:var(--muted)}
+.x:hover{color:var(--fg);border-color:var(--line-strong)}
+.modal .question{font-size:18px;line-height:1.5;margin:20px 0 0;max-width:72ch}
+.modal .question b{color:var(--lime)}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:26px 40px;margin-top:26px}
+.sec h4{margin:0 0 10px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:500}
+.sec ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.sec li{max-width:64ch;color:var(--muted)}
+.sec li b{color:var(--fg);font-weight:700}
+.sec li::marker{color:var(--lime)}
+.sec.never li::marker{color:var(--red)}
+code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);padding:1px 6px;border-radius:5px}
+.gatebox{border:1px solid var(--lime);background:var(--lime-dim);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.gatebox.amber{border-color:var(--amber);background:var(--amber-dim)}
+.gatebox .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--lime)}
+.gatebox.amber .lbl{color:var(--amber)}
+.gatebox .pass{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.3}
+.gatebox .fail{color:var(--muted);font-size:15px}
+.gatebox .fail b{color:var(--red);font-weight:700}
+.stack{display:flex;flex-direction:column;gap:22px}
+.hand{margin:24px 0 0;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:15px}
+.hand b{color:var(--fg)}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.nav button{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;border:1px solid var(--line-strong);color:var(--muted);cursor:pointer;font-size:14px}
+.nav button:hover{color:var(--fg);border-color:var(--lime)}
+.nav button[hidden]{visibility:hidden}
+@media (max-width:720px){
+  .grid{grid-template-columns:1fr}
+  .modal{padding:22px 18px 20px;border-radius:16px}
+  .modal .head .id{margin-left:0}
+}
+.foot{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:12px;color:var(--faint)}
+.foot a{color:var(--muted)}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;scroll-behavior:auto!important} }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">AI Round Table · Revolt BI × UNIQA</div>
+    <h1>Čtyři skilly, čtyři brány</h1>
+    <p class="lede">Každý flow projde těmito kroky. Orchestrátor hlídá pořadí, skill postoupí dál jen při PASS. Člověk pak dělá review merge requestu. Klikněte na skill pro detail.</p>
+  </header>
+
+  <div class="stage">
+    <svg class="wires" id="wires" aria-hidden="true"></svg>
+
+    <div class="orch-row">
+      <button class="orch" id="btn-orch" data-key="orch" aria-haspopup="dialog">
+        <span class="badge amber">00</span>
+        <span class="t">
+          <b>Orchestrator</b>
+          <span>keboola-orchest-skill</span>
+          <em>spouští fáze v pořadí, postoupí jen na PASS, jinak STOP</em>
+        </span>
+      </button>
+    </div>
+
+    <div class="chain">
+      <div class="row" role="list">
+        <button class="card" id="btn-readiness" data-key="readiness" role="listitem" aria-haspopup="dialog">
+          <span class="badge lime">01</span>
+          <h3>Readiness</h3>
+          <span class="id">keboola-readiness-skill</span>
+          <p class="q">Jsou všechny vstupy na podu, aktuální a úplné? Existuje legacy reference a validační okno?</p>
+          <span class="gate">brána: žádný vstup neblokuje</span>
+        </button>
+
+        <div class="arrow" aria-hidden="true"><svg viewBox="0 0 60 14" preserveAspectRatio="none"><line x1="0" y1="7" x2="50" y2="7" stroke="var(--lime)" stroke-width="2"/><polygon points="48,1 60,7 48,13" fill="var(--lime)"/></svg></div>
+
+        <button class="card" id="btn-migration" data-key="migration" role="listitem" aria-haspopup="dialog">
+          <span class="badge lime">02</span>
+          <h3>Migration</h3>
+          <span class="id">keboola-migration-skill</span>
+          <p class="q">Keboola SQL → dbt model + YAML s testy, závislostmi a publikací na S3.</p>
+          <span class="gate">brána: dbt parse čistý</span>
+        </button>
+
+        <div class="arrow" aria-hidden="true"><svg viewBox="0 0 60 14" preserveAspectRatio="none"><line x1="0" y1="7" x2="50" y2="7" stroke="var(--lime)" stroke-width="2"/><polygon points="48,1 60,7 48,13" fill="var(--lime)"/></svg></div>
+
+        <button class="card" id="btn-validation" data-key="validation" role="listitem" aria-haspopup="dialog">
+          <span class="badge lime">03</span>
+          <h3>Validation</h3>
+          <span class="id">keboola-validation-skill</span>
+          <p class="q">Build na reálných datech a rekonciliace proti legacy výstupu, dokud nezbývá 0 nevysvětlených warningů.</p>
+          <span class="gate">brána: 0 nevysvětlených WARN</span>
+        </button>
+
+        <div class="arrow" aria-hidden="true"><svg viewBox="0 0 60 14" preserveAspectRatio="none"><line x1="0" y1="7" x2="50" y2="7" stroke="var(--lime)" stroke-width="2"/><polygon points="48,1 60,7 48,13" fill="var(--lime)"/></svg></div>
+
+        <button class="card" id="btn-pushing" data-key="pushing" role="listitem" aria-haspopup="dialog">
+          <span class="badge lime">04</span>
+          <h3>Pushing</h3>
+          <span class="id">keboola-pushing-skill</span>
+          <p class="q">Push, merge request s odůvodněním, komentář s důkazy a task do review.</p>
+          <span class="gate">brána: člověk schvaluje merge</span>
+        </button>
+      </div>
+      <div class="loopnote">↺ validation ⇄ migration: iteruje, dokud není hotovo</div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>Anonymizovaná data z reálné migrace</span>
+    <a href="https://github.com/tomdanc/uniqa-ai-migration-demo">github.com/tomdanc/uniqa-ai-migration-demo</a>
+    <span>Esc zavře · ← → přepíná skilly</span>
+  </footer>
+</div>
+
+<!-- modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title" id="modal" tabindex="-1">
+    <button class="x" id="close" aria-label="Zavřít">✕</button>
+    <div id="m-body"></div>
+    <div class="nav">
+      <button id="prev" type="button">← <span id="prev-l"></span></button>
+      <button id="next" type="button"><span id="next-l"></span> →</button>
+    </div>
+  </div>
+</div>
+
+<!-- content templates -->
+<template id="t-orch">
+  <div class="head"><span class="badge amber">00</span><h2 id="m-title">Orchestrator</h2><span class="id">keboola-orchest-skill</span></div>
+  <p class="question">Otázka: <b>Projde tento flow celým řetězcem až k merge requestu, aniž by někdo musel hlídat přechody mezi fázemi?</b></p>
+  <div class="grid">
+    <div class="sec">
+      <h4>Co dělá</h4>
+      <ul>
+        <li>Spustí fáze v pevném pořadí: readiness → migration → readiness znovu nad skutečnými vstupy modelu → validation → pushing.</li>
+        <li>Po každé fázi přečte její verdikt. Pokračuje jen na PASS, který má daná fáze vyjmenovaný.</li>
+        <li>Jakýkoli jiný výsledek, tedy rozhodnutí předané operátorovi, neznámý verdikt nebo chyba, běh <b>zastaví</b> a vydá halt report.</li>
+        <li>Vede deník běhu: která fáze, kdy, s jakým verdiktem a důkazem. Na konci vydá jednu závěrečnou zprávu.</li>
+        <li>Hlídá, že se stav tasku posunul přesně tak, jak ho fáze posunuly: rozpracováno při vytvoření větve, k review po pushi.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <div class="gatebox amber">
+        <span class="lbl">pravidlo</span>
+        <span class="pass">Vlastní pořadí, nic víc.</span>
+        <span class="fail">Žádná vlastní logika verdiktů, žádné SQL, žádný dbt, žádný git. Každou kontrolu i každý zásah ven dělá fáze, která ji už vlastní. <b>Merge a cutover</b> nejsou nikdy součástí běhu.</span>
+      </div>
+      <div class="sec never">
+        <h4>Co nikdy nedělá</h4>
+        <ul>
+          <li>Nehádá verdikt za fázi, která ho nevydala.</li>
+          <li>Nepokračuje přes STOP. Zastavený běh se dořeší ručně a spustí znovu od dané fáze.</li>
+          <li>Nevybírá, který flow migrovat. To je samostatný krok před řetězcem.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="hand"><b>Proč to funguje:</b> každý skill končí verdiktem v pevném tvaru. Orchestrátor nemusí rozumět obsahu, stačí mu číst verdikty.</p>
+</template>
+
+<template id="t-readiness">
+  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Readiness</h2><span class="id">keboola-readiness-skill · P2</span></div>
+  <p class="question">Otázka: <b>Je všechno, co flow potřebuje, dnes skutečně použitelné? A když ne, kdo to odblokuje?</b> Jedna tabulka, verdikt na každém řádku, nikdy jedna sloučená odpověď.</p>
+  <div class="grid">
+    <div class="sec">
+      <h4>Co kontroluje, živě a teď</h4>
+      <ul>
+        <li>Krok 0: znovu stáhne konfigurační list data ownera. Den starý list dělá z právě načítané tabulky falešně chybějící.</li>
+        <li>Každý <b>vstup</b> modelu: má trvalý produkční domov, nebo leží jen v dočasném stagingu, nebo chybí úplně.</li>
+        <li><b>Úplnost</b> každého vstupu. Přítomná tabulka není použitelná tabulka: jedna denní dávka není historie.</li>
+        <li>Stav každého <b>producenta</b> z jiného flow: zmergovaný, migrovaný ale nezmergovaný, nebo nemigrovaný. Nezmergovaný producent neblokuje, hlídá se jen pořadí MR.</li>
+        <li><b>Referenční legacy výstup</b>: existuje a je deklarovaný? Bez něj se flow nedá validovat.</li>
+        <li><b>Okno překryvu</b>: existuje období, kde jsou vstup i legacy reference kompletní? Jinak validace nemá s čím srovnávat.</li>
+        <li>Každý nepřipravený řádek zaloguje data ownerovi. Tabulka zalogovaná nikde je tabulka, kterou nikdo nenačítá.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <div class="gatebox">
+        <span class="lbl">brána 1</span>
+        <span class="pass">PASS: žádný řádek tabulky dostupnosti neblokuje migraci ani validaci.</span>
+        <span class="fail"><b>STOP</b>, když chybí vstup, chybí nebo není deklarovaná reference, nebo neexistuje validační okno. Flow, které nedává smysl migrovat, se vyřadí hned tady, než vznikne zbytečná práce.</span>
+      </div>
+      <div class="sec">
+        <h4>Výstup</h4>
+        <ul>
+          <li>Verdikt jako nadpis, pak tabulka „co běželo“ po krocích.</li>
+          <li>Měřicí tabulky jen tam, kde nesou číslo.</li>
+          <li>Poznámky pro migration: filtr, klíč a okno, které má model zrcadlit.</li>
+          <li>Tabulka dostupnosti vždy jako poslední věc v odpovědi.</li>
+        </ul>
+      </div>
+      <div class="sec never">
+        <h4>Co nikdy nedělá</h4>
+        <ul>
+          <li>Nerozhoduje migrovat / nemigrovat a neurčuje typ zdroje. To je scope, fáze před ní.</li>
+          <li>Nevytváří větev, nestaví modely, nevaliduje, nepushuje.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="hand"><b>Předání →</b> Migration dostane seznam vstupů a jejich typ, filtr a klíč. Po migraci se Readiness spustí znovu nad skutečnými <code>source()</code> a <code>ref()</code> voláními modelu.</p>
+</template>
+
+<template id="t-migration">
+  <div class="head"><span class="badge lime">02</span><h2 id="m-title">Migration</h2><span class="id">keboola-migration-skill · P3</span></div>
+  <p class="question">Otázka: <b>Jak vypadá tento flow jako dbt projekt s testy, závislostmi a publikací?</b> Neběží první. Vstupní podmínkou je PASS readiness, takže nikdy nehádá scope ani seznam vstupů.</p>
+  <div class="grid">
+    <div class="sec">
+      <h4>Co dělá</h4>
+      <ul>
+        <li>Vytvoří větev z čerstvé <code>qa</code>, pojmenovanou podle tasku, a task posune do „rozpracováno“.</li>
+        <li>Stáhne surové legacy SQL přímo z živého Keboola flow, z jeho skutečného seznamu úloh, nikdy z manifestu.</li>
+        <li>Závislosti zapíše do <code>sources.yml</code>: vnitřní řetězec a producenti z jiných flow jako <code>ref()</code>, externí tabulky jako <code>source()</code>.</li>
+        <li>Převede Snowflake dialekt na dbt + DuckDB: CTE místo temp tabulek, <code>TRY_CAST</code>, přepsané funkce, rozdělení bloků podle materializace.</li>
+        <li>Vygeneruje YAML modelů. Testy jen na <b>výstupních</b> modelech: unique + not_null na klíčích, not_null na cizích klíčích. Mezilehlé uzly dostanou holý seznam sloupců.</li>
+        <li>Zapojí rekonciliační testy proti legacy tabulce: žádné chybějící řádky, žádné přebývající řádky, stejné hodnoty.</li>
+        <li>Na každý výstupní model dá publikační hook na S3, na žádný mezilehlý. Skript to zkontroluje.</li>
+        <li>Autoruje lokálně na větvi. Na konci jen ověří, že pod je dostupný a data flow jsou načtená, a zastaví se.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <div class="gatebox">
+        <span class="lbl">brána 2</span>
+        <span class="pass">PASS: modely, YAML a testy jsou na větvi a <code>dbt parse</code> je čistý.</span>
+        <span class="fail"><b>STOP</b>, když se SQL nedá převést bez rozhodnutí operátora: mutace tabulky, Python transformace nebo chybějící primární klíč v legacy.</span>
+      </div>
+      <div class="sec">
+        <h4>Pravidla, která skill drží za nás</h4>
+        <ul>
+          <li>Struktura složek projekt / flow / transformace, jak ji schválil architekt.</li>
+          <li>Výchozí materializace <code>view</code>, inkrementální jen s důvodem.</li>
+          <li>Odkaz na zdrojovou Keboola transformaci v hlavičce každého modelu.</li>
+        </ul>
+      </div>
+      <div class="sec never">
+        <h4>Co nikdy nedělá</h4>
+        <ul>
+          <li>Nespouští se bez PASS readiness. Když operátor řekne jen „migruj X“, řekne to a vrátí se na začátek řetězce.</li>
+          <li>Nestaví na reálných datech, nevaliduje, necommituje, nepushuje.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="hand"><b>Předání →</b> Readiness v post-migračním režimu nad skutečnými vstupy modelu, pak Validation. Když validace najde chybu převodu, vrací se sem.</p>
+</template>
+
+<template id="t-validation">
+  <div class="head"><span class="badge lime">03</span><h2 id="m-title">Validation</h2><span class="id">keboola-validation-skill · P4</span></div>
+  <p class="question">Otázka: <b>Dává nový model na reálných datech stejná čísla jako legacy výstup?</b> Validuje se logika flow, ne celý svět: producent, který ještě neprošel review, se bere z jeho staged kopie.</p>
+  <div class="grid">
+    <div class="sec">
+      <h4>Co dělá, krok za krokem</h4>
+      <ul>
+        <li>Nahraje větev na pod, kde jsou zdrojová i legacy data jako DuckDB pohledy nad S3.</li>
+        <li>Najde data, potvrdí tabulky a datové typy, přesměruje <code>sources.yml</code> na reálná schémata podu.</li>
+        <li><code>dbt build</code> → <code>dbt test</code>: rekonciliace řádek po řádku, vlákna podle počtu jader podu.</li>
+        <li>Postaví Elementary report a vystaví ho jako HTML.</li>
+        <li><b>Smyčka</b> do 0 nevysvětlených WARN: opravit chybu migrace, nebo zahodit neplatný test s důkazem z podu, nebo přijmout a zdokumentovat očekávaný rozdíl.</li>
+        <li>Každý WARN nejdřív hledá v katalogu známých oprav. Data owner je poslední možnost, ne první.</li>
+        <li>U dlouhých běhů hlásí každých 10 minut tabulku postupu po modelech.</li>
+        <li>Když je čisto, stáhne validované soubory zpět na lokální větev a zapíše nález do katalogu oprav.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <div class="gatebox">
+        <span class="lbl">brána 3</span>
+        <span class="pass">PASS: 0 nevysvětlených WARN. Každý zbývající má důkaz z podu a jmenovatel.</span>
+        <span class="fail"><b>STOP</b>, když rozdíl nejde vysvětlit, když chybí validační okno, nebo když by řešení vyžadovalo dnešní data, která na podu nejsou. Pak se navrhne úprava validace, flow se neparkuje.</span>
+      </div>
+      <div class="sec">
+        <h4>Výstup, vždy dvě tabulky</h4>
+        <ul>
+          <li><b>STATE tabulka</b>: migrováno / zdroje = produkce / postaveno / rekonciliace / synchronizováno / commit / push / MR / merge. Každý řádek s důkazem.</li>
+          <li><b>Per-WARN tabulka</b>: test, výsledek s počtem, verdikt se jmenovatelem. Pod čarou pozitivní důkazy.</li>
+        </ul>
+      </div>
+      <div class="sec never">
+        <h4>Co nikdy nedělá</h4>
+        <ul>
+          <li>Nezačne stavět bez post-migrační readiness.</li>
+          <li>Nepublikuje nic do produkce. Brána 1 validuje logiku, publikace přijde až po merge.</li>
+          <li>Necommituje a nepushuje.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="hand"><b>Předání →</b> Pushing dostane čistou větev a obě tabulky jako podklad pro komentář s důkazy.</p>
+</template>
+
+<template id="t-pushing">
+  <div class="head"><span class="badge lime">04</span><h2 id="m-title">Pushing</h2><span class="id">keboola-pushing-skill · P5</span></div>
+  <p class="question">Otázka: <b>Je flow připravené k lidskému review, s důkazy na jednom místě?</b> Poslední fáze řetězce. Nikdy nepushuje flow, jehož validace neproběhla nebo neprošla.</p>
+  <div class="grid">
+    <div class="sec">
+      <h4>Co dělá</h4>
+      <ul>
+        <li>Cílený <code>git add</code> jen souborů tohoto flow. Nikdy <code>git add -A</code>: větev stojí na <code>qa</code> a nesmí odnést cizí zmergované flow.</li>
+        <li>Kontrola tajemství před commitem.</li>
+        <li>Kontrola publikačního hooku: výstup bez hooku nebo mezilehlý model s hookem push zastaví.</li>
+        <li>Commit, push a merge request do <code>qa</code>, vše neinteraktivně.</li>
+        <li>Komentář na task v pevném formátu: řádky s verdiktem a důkazem, zrcadlící STATE a per-WARN tabulky validace.</li>
+        <li>Task posune do „k review“, ne „hotovo“. Hotovo je stav po merge.</li>
+        <li>Po review seniora umí znovu pushnout opravu na stejnou větev.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <div class="gatebox">
+        <span class="lbl">brána 4 · člověk</span>
+        <span class="pass">PASS: MR otevřen, task v review, komentář s důkazy na místě.</span>
+        <span class="fail">Dál už agent nejde. <b>Merge</b> do produkční větve, chain validaci přes více flow a cutover dělá senior reviewer.</span>
+      </div>
+      <div class="sec">
+        <h4>Co reviewer dostane</h4>
+        <ul>
+          <li>Diff jen tohoto flow proti <code>qa</code>.</li>
+          <li>Důkazy o shodě s legacy přímo v tasku, bez hledání v logu.</li>
+          <li>Každý přijatý rozdíl zdokumentovaný v hlavičce modelu.</li>
+        </ul>
+      </div>
+      <div class="sec never">
+        <h4>Co nikdy nedělá</h4>
+        <ul>
+          <li>Žádný <code>dbt parse</code>, žádná re-validace. Flow už je čisté z předchozí fáze.</li>
+          <li>Nemerguje. Neposouvá task na „hotovo“.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="hand"><b>Předání →</b> senior reviewer. Řetězec tím končí.</p>
+</template>
+
+<script>
+(function(){
+  var keys=['orch','readiness','migration','validation','pushing'];
+  var names={orch:'Orchestrator',readiness:'Readiness',migration:'Migration',validation:'Validation',pushing:'Pushing'};
+  var overlay=document.getElementById('overlay'),modal=document.getElementById('modal'),body=document.getElementById('m-body');
+  var prev=document.getElementById('prev'),next=document.getElementById('next');
+  var current=null,lastFocus=null;
+
+  function open(k,fromClick){
+    var t=document.getElementById('t-'+k);
+    body.innerHTML='';
+    body.appendChild(t.content.cloneNode(true));
+    var i=keys.indexOf(k);
+    prev.hidden=i<=0; next.hidden=i>=keys.length-1;
+    document.getElementById('prev-l').textContent=i>0?names[keys[i-1]]:'';
+    document.getElementById('next-l').textContent=i<keys.length-1?names[keys[i+1]]:'';
+    if(!overlay.classList.contains('on')){ lastFocus=document.activeElement; overlay.classList.add('on'); document.body.style.overflow='hidden'; }
+    modal.scrollTop=0; modal.focus();
+    current=k;
+    try{ history.replaceState(null,'','#'+k); }catch(e){}
+  }
+  function close(){
+    overlay.classList.remove('on'); document.body.style.overflow='';
+    current=null;
+    try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+    if(lastFocus&&lastFocus.focus) lastFocus.focus();
+  }
+  keys.forEach(function(k){ document.getElementById('btn-'+k).addEventListener('click',function(){ open(k,true); }); });
+  document.getElementById('close').addEventListener('click',close);
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) close(); });
+  prev.addEventListener('click',function(){ var i=keys.indexOf(current); if(i>0) open(keys[i-1]); });
+  next.addEventListener('click',function(){ var i=keys.indexOf(current); if(i<keys.length-1) open(keys[i+1]); });
+  document.addEventListener('keydown',function(e){
+    if(!overlay.classList.contains('on')) return;
+    var i=keys.indexOf(current);
+    if(e.key==='Escape'){ close(); e.preventDefault(); }
+    else if(e.key==='ArrowRight'&&i<keys.length-1){ open(keys[i+1]); e.preventDefault(); }
+    else if(e.key==='ArrowLeft'&&i>0){ open(keys[i-1]); e.preventDefault(); }
+  });
+
+  /* connector wires: orchestrator → each card, plus the dashed iterate loop validation → migration */
+  var stage=document.querySelector('.stage'),svg=document.getElementById('wires');
+  function rect(el){ var r=el.getBoundingClientRect(),s=stage.getBoundingClientRect(); return {x:r.left-s.left,y:r.top-s.top,w:r.width,h:r.height}; }
+  function draw(){
+    if(window.innerWidth<=900){ svg.innerHTML=''; return; }
+    var o=rect(document.getElementById('btn-orch'));
+    var cards=['readiness','migration','validation','pushing'].map(function(k){ return rect(document.getElementById('btn-'+k)); });
+    var ox=o.x+o.w/2, oy=o.y+o.h;
+    var busY=oy+(cards[0].y-oy)/2;
+    var p=[];
+    var amber='var(--amber)', lime='var(--lime)';
+    p.push('<line x1="'+ox+'" y1="'+oy+'" x2="'+ox+'" y2="'+busY+'" stroke="'+amber+'" stroke-width="2"/>');
+    var first=cards[0].x+cards[0].w/2, last=cards[3].x+cards[3].w/2;
+    p.push('<line x1="'+first+'" y1="'+busY+'" x2="'+last+'" y2="'+busY+'" stroke="'+amber+'" stroke-width="2"/>');
+    cards.forEach(function(c){
+      var cx=c.x+c.w/2;
+      p.push('<line x1="'+cx+'" y1="'+busY+'" x2="'+cx+'" y2="'+(c.y-8)+'" stroke="'+amber+'" stroke-width="2"/>');
+      p.push('<polygon points="'+(cx-5)+','+(c.y-9)+' '+(cx+5)+','+(c.y-9)+' '+cx+','+(c.y-1)+'" fill="'+amber+'"/>');
+    });
+    /* loop */
+    var m=cards[1], v=cards[2];
+    var mx=m.x+m.w/2, vx=v.x+v.w/2, by=m.y+m.h, ly=by+44;
+    p.push('<path d="M'+vx+' '+by+' L'+vx+' '+ly+' L'+mx+' '+ly+' L'+mx+' '+(by+10)+'" fill="none" stroke="'+lime+'" stroke-width="2" stroke-dasharray="6 5"/>');
+    p.push('<polygon points="'+(mx-5)+','+(by+12)+' '+(mx+5)+','+(by+12)+' '+mx+','+(by+2)+'" fill="'+lime+'"/>');
+    var tx=(mx+vx)/2;
+    p.push('<text x="'+tx+'" y="'+(ly-8)+'" text-anchor="middle" font-family="JetBrains Mono, Menlo, monospace" font-size="12" fill="'+lime+'">iteruje, dokud není hotovo</text>');
+    svg.innerHTML=p.join('');
+  }
+  draw();
+  window.addEventListener('resize',draw);
+  if(window.ResizeObserver){ new ResizeObserver(draw).observe(stage); }
+  if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(draw); }
+
+  var h=(location.hash||'').replace('#','');
+  if(keys.indexOf(h)>=0) open(h);
+})();
+</script>
+
+</body></html>
