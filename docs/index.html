@@ -161,7 +161,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       <button class="orch" id="btn-orch" data-key="orch" aria-haspopup="dialog">
         <span class="badge amber">00</span>
         <span class="t">
-          <b>Orchestrator</b>
+          <b>Orchestrator <small style="font-family:var(--display);font-size:15px;font-weight:600;color:var(--muted)">(Optional)</small></b>
           <span>keboola-orchest-skill</span>
           <em>spouští fáze v pořadí, postoupí jen na PASS, jinak STOP</em>
         </span>
@@ -172,7 +172,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       <div class="row" role="list">
         <button class="card" id="btn-readiness" data-key="readiness" role="listitem" aria-haspopup="dialog">
           <span class="badge lime">01</span>
-          <h3>Readiness</h3>
+          <h3>Status + Scope = Readiness</h3>
           <span class="id">keboola-readiness-skill</span>
           <p class="q">Jsou všechny vstupy na podu, aktuální a úplné? Existuje legacy reference a validační okno?</p>
           <span class="gate">brána: žádný vstup neblokuje</span>
@@ -233,7 +233,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 
 <!-- content templates -->
 <template id="t-orch">
-  <div class="head"><span class="badge amber">00</span><h2 id="m-title">Orchestrator</h2><span class="id">keboola-orchest-skill</span></div>
+  <div class="head"><span class="badge amber">00</span><h2 id="m-title">Orchestrator <span style="color:var(--faint)">(Optional)</span></h2><span class="id">keboola-orchest-skill</span></div>
   <p class="question">Otázka: <b>Projde tento flow celým řetězcem až k merge requestu, aniž by někdo musel hlídat přechody mezi fázemi?</b></p>
   <div class="grid">
     <div class="sec">
@@ -266,7 +266,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 </template>
 
 <template id="t-readiness">
-  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Readiness</h2><span class="id">keboola-readiness-skill · P2</span></div>
+  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Status + Scope = Readiness</h2><span class="id">keboola-readiness-skill · P2</span></div>
   <p class="question">Otázka: <b>Je všechno, co flow potřebuje, dnes skutečně použitelné? A když ne, kdo to odblokuje?</b> Jedna tabulka, verdikt na každém řádku, nikdy jedna sloučená odpověď.</p>
   <div class="grid">
     <div class="sec">
@@ -439,7 +439,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 <script>
 (function(){
   var keys=['orch','readiness','migration','validation','pushing'];
-  var names={orch:'Orchestrator',readiness:'Readiness',migration:'Migration',validation:'Validation',pushing:'Pushing'};
+  var names={orch:'Orchestrator (Optional)',readiness:'Status + Scope = Readiness',migration:'Migration',validation:'Validation',pushing:'Pushing'};
   var overlay=document.getElementById('overlay'),modal=document.getElementById('modal'),body=document.getElementById('m-body');
   var prev=document.getElementById('prev'),next=document.getElementById('next');
   var current=null,lastFocus=null;
