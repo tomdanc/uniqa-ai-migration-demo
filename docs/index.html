@@ -176,8 +176,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       <div class="row" role="list">
         <button class="card" id="btn-readiness" data-key="readiness" role="listitem" aria-haspopup="dialog">
           <span class="badge lime">01</span>
-          <h3>Readiness</h3>
-          <span class="formula">Status + Scope = Readiness</span>
+          <h3>Status + Scope</h3>
           <span class="id">keboola-readiness-skill</span>
           <p class="q">Jsou všechny vstupy na podu, aktuální a úplné? Existuje legacy reference a validační okno?</p>
           <span class="gate">brána: žádný vstup neblokuje</span>
@@ -244,7 +243,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
     <div class="sec">
       <h4>Co dělá</h4>
       <ul>
-        <li>Spustí fáze v pevném pořadí: readiness → migration → readiness znovu nad skutečnými vstupy modelu → validation → pushing.</li>
+        <li>Spustí fáze v pevném pořadí: Status + Scope → migration → Status + Scope znovu nad skutečnými vstupy modelu → validation → pushing.</li>
         <li>Po každé fázi přečte její verdikt. Pokračuje jen na PASS, který má daná fáze vyjmenovaný.</li>
         <li>Jakýkoli jiný výsledek, tedy rozhodnutí předané operátorovi, neznámý verdikt nebo chyba, běh <b>zastaví</b> a vydá halt report.</li>
         <li>Vede deník běhu: která fáze, kdy, s jakým verdiktem a důkazem. Na konci vydá jednu závěrečnou zprávu.</li>
@@ -271,7 +270,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 </template>
 
 <template id="t-readiness">
-  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Readiness</h2><span class="formula">Status + Scope = Readiness</span><span class="id">keboola-readiness-skill · P2</span></div>
+  <div class="head"><span class="badge lime">01</span><h2 id="m-title">Status + Scope</h2><span class="id">keboola-readiness-skill · P2</span></div>
   <p class="question">Otázka: <b>Je všechno, co flow potřebuje, dnes skutečně použitelné? A když ne, kdo to odblokuje?</b> Jedna tabulka, verdikt na každém řádku, nikdy jedna sloučená odpověď.</p>
   <div class="grid">
     <div class="sec">
@@ -310,12 +309,12 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       </div>
     </div>
   </div>
-  <p class="hand"><b>Předání →</b> Migration dostane seznam vstupů a jejich typ, filtr a klíč. Po migraci se Readiness spustí znovu nad skutečnými <code>source()</code> a <code>ref()</code> voláními modelu.</p>
+  <p class="hand"><b>Předání →</b> Migration dostane seznam vstupů a jejich typ, filtr a klíč. Po migraci se Status + Scope spustí znovu nad skutečnými <code>source()</code> a <code>ref()</code> voláními modelu.</p>
 </template>
 
 <template id="t-migration">
   <div class="head"><span class="badge lime">02</span><h2 id="m-title">Migration</h2><span class="id">keboola-migration-skill · P3</span></div>
-  <p class="question">Otázka: <b>Jak vypadá tento flow jako dbt projekt s testy, závislostmi a publikací?</b> Neběží první. Vstupní podmínkou je PASS readiness, takže nikdy nehádá scope ani seznam vstupů.</p>
+  <p class="question">Otázka: <b>Jak vypadá tento flow jako dbt projekt s testy, závislostmi a publikací?</b> Neběží první. Vstupní podmínkou je PASS Status + Scope, takže nikdy nehádá scope ani seznam vstupů.</p>
   <div class="grid">
     <div class="sec">
       <h4>Co dělá</h4>
@@ -347,13 +346,13 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       <div class="sec never">
         <h4>Co nikdy nedělá</h4>
         <ul>
-          <li>Nespouští se bez PASS readiness. Když operátor řekne jen „migruj X“, řekne to a vrátí se na začátek řetězce.</li>
+          <li>Nespouští se bez PASS Status + Scope. Když operátor řekne jen „migruj X“, řekne to a vrátí se na začátek řetězce.</li>
           <li>Nestaví na reálných datech, nevaliduje, necommituje, nepushuje.</li>
         </ul>
       </div>
     </div>
   </div>
-  <p class="hand"><b>Předání →</b> Readiness v post-migračním režimu nad skutečnými vstupy modelu, pak Validation. Když validace najde chybu převodu, vrací se sem.</p>
+  <p class="hand"><b>Předání →</b> Status + Scope v post-migračním režimu nad skutečnými vstupy modelu, pak Validation. Když validace najde chybu převodu, vrací se sem.</p>
 </template>
 
 <template id="t-validation">
@@ -389,7 +388,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
       <div class="sec never">
         <h4>Co nikdy nedělá</h4>
         <ul>
-          <li>Nezačne stavět bez post-migrační readiness.</li>
+          <li>Nezačne stavět bez post-migračního Status + Scope.</li>
           <li>Nepublikuje nic do produkce. Brána 1 validuje logiku, publikace přijde až po merge.</li>
           <li>Necommituje a nepushuje.</li>
         </ul>
@@ -444,7 +443,7 @@ code{font-family:var(--mono);font-size:.88em;background:rgba(127,127,127,.18);pa
 <script>
 (function(){
   var keys=['orch','readiness','migration','validation','pushing'];
-  var names={orch:'Orchestrator (Optional)',readiness:'Readiness',migration:'Migration',validation:'Validation',pushing:'Pushing'};
+  var names={orch:'Orchestrator (Optional)',readiness:'Status + Scope',migration:'Migration',validation:'Validation',pushing:'Pushing'};
   var overlay=document.getElementById('overlay'),modal=document.getElementById('modal'),body=document.getElementById('m-body');
   var prev=document.getElementById('prev'),next=document.getElementById('next');
   var current=null,lastFocus=null;
